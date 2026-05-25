@@ -1,3 +1,4 @@
+import type Geometry from "@arcgis/core/geometry/Geometry"
 import type FeatureLayer from "@arcgis/core/layers/FeatureLayer"
 import { useEffect, useState } from "react"
 
@@ -5,12 +6,27 @@ type LayerRefs = {
   fiberLayerRef: React.RefObject<FeatureLayer | null>
   customerLayerRef: React.RefObject<FeatureLayer | null>
   coverageAreaRef: React.RefObject<FeatureLayer | null>
+  onAreaGeometryChange?: (g: Geometry | null) => void
 }
 
-export function useFilters({fiberLayerRef,customerLayerRef,coverageAreaRef}: LayerRefs) {
+export function useFilters({fiberLayerRef,customerLayerRef,coverageAreaRef, onAreaGeometryChange}: LayerRefs) {
   const [fiberOperator, setFiberOperator] = useState("all")
   const [packageType, setPackageType] = useState("all")
   const [area, setArea] = useState("all")
+
+  async function getAreaGeometry(area: string) {
+    const layer = coverageAreaRef.current
+    if (!layer || area === "all") return null
+
+    const query = layer.createQuery()
+    query.where = `area = '${area}'`
+    query.returnGeometry = true
+    query.outFields = ["*"]
+
+    const res = await layer.queryFeatures(query)
+
+    return res.features?.[0]?.geometry ?? null
+  }
 
   function applyFilters() {
     const fiberLayer = fiberLayerRef.current
@@ -41,6 +57,9 @@ export function useFilters({fiberLayerRef,customerLayerRef,coverageAreaRef}: Lay
 
   useEffect(() => {
     applyFilters()
+    getAreaGeometry(area).then((geom) => {
+      onAreaGeometryChange?.(geom)
+    })
   }, [fiberOperator, packageType, area])
 
   return {

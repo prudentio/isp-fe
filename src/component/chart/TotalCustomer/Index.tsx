@@ -1,16 +1,18 @@
+import type Geometry from "@arcgis/core/geometry/Geometry"
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer"
 import { useEffect, useState } from "react"
 
 type Props = {
   packageType: string
+  geometry?: Geometry | null
 }
 
-export default function TotalActiveCustomer({ packageType }: Props) {
+export default function TotalActiveCustomer({ packageType, geometry }: Props) {
   const [total, setTotal] = useState<number>(0)
 
   useEffect(() => {
     const layer = new FeatureLayer({
-      url: "https://services5.arcgis.com/PFczHi0yHZ6hxc18/arcgis/rest/services/customer_points/FeatureServer/0",
+      url: import.meta.env.VITE_CUSTOMER_LAYER_URL,
     })
 
     layer.load().then(() => {
@@ -22,11 +24,12 @@ export default function TotalActiveCustomer({ packageType }: Props) {
 
       layer.queryFeatureCount({
         where,
+        geometry: geometry ?? undefined,
       }).then((count) => {
         setTotal(count)
       })
     })
-  }, [packageType])
+  }, [packageType, geometry])
 
   return (
     <div style={{ padding: 20, fontSize: 24 }}>

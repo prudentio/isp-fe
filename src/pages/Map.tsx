@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import "@arcgis/map-components/components/arcgis-map"
 import "@arcgis/map-components/components/arcgis-zoom"
 import "@arcgis/map-components/components/arcgis-expand"
@@ -8,6 +8,7 @@ import "@arcgis/map-components/components/arcgis-basemap-gallery"
 import "@arcgis/map-components/components/arcgis-layer-list"
 import "@arcgis/core/assets/esri/themes/light/main.css"
 import "@arcgis/map-components/components/arcgis-editor"
+import type Geometry from "@arcgis/core/geometry/Geometry"
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer"
 import TotalActiveCustomerPerPackage from "../component/chart/TotalCustomer/PerPackage"
 import TotalActiveCustomer from "../component/chart/TotalCustomer/Index"
@@ -34,6 +35,7 @@ export default function MapPage() {
   const fiberLayerRef = useRef<FeatureLayer | null>(null)
   const coverageAreaRef = useRef<FeatureLayer | null>(null)
   const customerLayerRef = useRef<FeatureLayer | null>(null)
+  const [areaGeometry, setAreaGeometry] = useState<Geometry | null>(null)
 
   const {
     setFiberOperator,
@@ -45,6 +47,7 @@ export default function MapPage() {
     fiberLayerRef,
     customerLayerRef,
     coverageAreaRef,
+    onAreaGeometryChange: setAreaGeometry,
   })
 
   const { createLegend } = useLegend()
@@ -68,11 +71,11 @@ return (
   <div className="w-full h-full flex gap-x-3">
     <div className="flex flex-col h-full">
       <div className="flex-1">
-        <TotalActiveCustomer packageType={packageType} />
+        <TotalActiveCustomer packageType={packageType} geometry={areaGeometry}/>
       </div>
 
       <div className="flex-1">
-        <TotalRevenue packageType={packageType} />
+        <TotalRevenue packageType={packageType} geometry={areaGeometry} />
       </div>
 
       <div className="flex-1">
@@ -84,7 +87,7 @@ return (
       </div>
 
       <div className="flex-1">
-        <TotalActiveCustomerPerPackage packageType={packageType} />
+        <TotalActiveCustomerPerPackage packageType={packageType} geometry={areaGeometry}/>
       </div>
     </div>
 

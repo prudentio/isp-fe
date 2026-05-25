@@ -263,9 +263,15 @@ function createCoveragePopup() {
         name: "statusExpr",
         title: "Status",
         expression: `
-          IIF($feature.current_customer > $feature.max_customer,
-          "OVER CAPACITY",
-          "OK")
+          IIF(
+            $feature.current_customer > $feature.max_customer,
+            "OVER CAPACITY",
+            IIF(
+              $feature.current_customer == $feature.max_customer,
+              "FULL CAPACITY",
+              "OK"
+            )
+          )
         `,
       }),
     ],
@@ -284,4 +290,3 @@ function createCoveragePopup() {
     ],
   })
 }
-

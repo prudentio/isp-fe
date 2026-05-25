@@ -11,7 +11,7 @@ export default function RemainingCapacity({ area }: Props) {
 
   useEffect(() => {
     const layer = new FeatureLayer({
-      url: "https://services5.arcgis.com/PFczHi0yHZ6hxc18/arcgis/rest/services/coverage_layer/FeatureServer/0",
+      url: import.meta.env.VITE_COVERAGE_LAYER_URL,
     })
 
     layer.load().then(async () => {

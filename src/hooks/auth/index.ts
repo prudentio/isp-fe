@@ -2,6 +2,7 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { jwtDecode } from "jwt-decode"
 import { AuthService } from "../../service/auth/index"
+import { ArcgisService } from "../../service/arcgis" 
 
 type AuthState = {
   token?: string
@@ -17,10 +18,12 @@ type AuthState = {
       code: string
     }[]
   } | null
+  arcgisAccessToken?: string 
 
   login: (username: string, password: string) => Promise<void>
   logout: () => void
   getUserInfo: () => Promise<void>
+  getArcgisAccessToken: () => Promise<void>
 
   isValid: () => boolean
 }
@@ -35,10 +38,10 @@ export const useAuthStore = create<AuthState>()(
       name: "",
 
       role: null,
+      arcgisAccessToken: undefined, 
 
       login: async (username, password) => {
         const res = await AuthService.login(username, password)
-        console.log("res", res)
         const token = res.data.accessToken
 
         const claims = jwtDecode<{ sub: string }>(token)
@@ -47,19 +50,27 @@ export const useAuthStore = create<AuthState>()(
           token,
           userId: claims.sub,
         })
-
+        await get().getArcgisAccessToken()
         await get().getUserInfo()
+      },
+
+      
+      getArcgisAccessToken: async () => {
+        const res = await ArcgisService.accessToken()
+
+        set({
+          arcgisAccessToken: res.accessToken,
+        })
       },
 
       getUserInfo: async () => {
       const userinfo = await AuthService.getUserInfo()
-      console.log("userinfo", userinfo)
       set({
         userId: userinfo.id,
         username: userinfo.username,
         role: userinfo.role,
       })
-    },
+      },
 
       logout: () => {
         set({
@@ -67,6 +78,7 @@ export const useAuthStore = create<AuthState>()(
           userId: undefined,
           username: "",
           role: null,
+          arcgisAccessToken: undefined,
         })
       },
 
